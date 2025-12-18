@@ -4,37 +4,32 @@ import "./App.css";
 function App() {
   const [isInsideGenesys, setIsInsideGenesys] = useState(false);
 
-  useEffect(() => {
-    // 1️⃣ Detectar si estamos dentro de Genesys
-    const urlParams = new URLSearchParams(window.location.search);
-    const gcHostOrigin = urlParams.get("gcHostOrigin");
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  const gcHostOrigin = params.get("gcHostOrigin");
 
-    if (!gcHostOrigin) {
-      console.warn("La página NO está cargada dentro de Genesys");
-      return;
-    }
+  if (!gcHostOrigin) {
+    console.warn("Fuera de Genesys, no se carga el chat");
+    return;
+  }
 
-    // Estamos dentro de Genesys
-    setIsInsideGenesys(true);
+  if (window.Genesys) return;
 
-    // 2️⃣ Cargar Genesys Messenger SOLO dentro de Genesys
-    if (window.Genesys) return;
+  const script = document.createElement("script");
+  script.src =
+    "https://apps.sae1.pure.cloud/genesys-bootstrap/genesys.min.js";
+  script.async = true;
 
-    const script = document.createElement("script");
-    script.src =
-      "https://apps.sae1.pure.cloud/genesys-bootstrap/genesys.min.js";
-    script.async = true;
-    script.charset = "utf-8";
+  script.onload = () => {
+    window.Genesys("boot", {
+      environment: "prod-sae1",
+      deploymentId: "b417cc0e-fd1e-4867-8dc4-51ee0f79550f"
+    });
+  };
 
-    script.onload = () => {
-      window.Genesys("boot", {
-        environment: "prod-sae1",
-        deploymentId: "b417cc0e-fd1e-4867-8dc4-51ee0f79550f"
-      });
-    };
+  document.head.appendChild(script);
+}, []);
 
-    document.head.appendChild(script);
-  }, []);
 
   return (
     <div className="container-fluid">
